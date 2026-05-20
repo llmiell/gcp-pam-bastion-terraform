@@ -121,6 +121,20 @@ gcloud compute ssh BASTION_NAME \
 
 Then connect DBeaver to `localhost:5433`.
 
+### 5. Connect DBeaver (No VPN Required)
+
+See the detailed guide: [`docs/dbeaver-connection.md`](docs/dbeaver-connection.md)
+
+Quick start:
+```bash
+# Start the tunnel helper
+./scripts/start-dbeaver-tunnel.sh
+
+# In DBeaver: Host=localhost, Port=5433, Database=appdb
+```
+
+This uses **IAP TCP forwarding** to reach the private Cloud SQL instance — no VPN, no public IP, no exposed firewall rules.
+
 ## Variables
 
 | Name | Description | Default |
