@@ -1,0 +1,64 @@
+#cloud-config
+package_update: true
+packages:
+  - curl
+  - jq
+  - postgresql-client
+
+runcmd:
+  # Create cloud-sql-proxy user
+  - useradd -r -s /bin/false cloudsql || true
+
+  # Download and install Cloud SQL Auth Proxy
+  - |
+    curl -o /usr/local/bin/cloud-sql-proxy \
+      https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v${cloud_sql_proxy_version}/cloud-sql-proxy.linux.amd64
+    chmod +x /usr/local/bin/cloud-sql-proxy
+
+  # Create systemd service for Cloud SQL Proxy
+  - |
+    cat > /etc/systemd/system/cloud-sql-proxy.service << 'EOF'
+    [Unit]
+    Description=Cloud SQL Auth Proxy
+    After=network-online.target
+    Wants=network-online.target
+
+    [Service]
+    Type=simple
+    User=cloudsql
+    Group=cloudsql
+    ExecStart=/usr/local/bin/cloud-sql-proxy \
+      --private-ip \
+      --address 127.0.0.1 \
+      --port ${db_port} \
+      --structured-logs \
+      ${db_instance_connection_name}
+    Restart=always
+    RestartSec=5
+
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+
+  # Reload and start service
+  - systemctl daemon-reload
+  - systemctl enable cloud-sql-proxy
+  - systemctl start cloud-sql-proxy
+
+  # Install OS Login helper
+  - apt-get install -y google-compute-engine-oslogin
+
+  # Harden SSH: disable password auth, root login
+  - |
+    sed -i 's/#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+    sed -i 's/#*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+    sed -i 's/#*ChallengeResponseAuthentication.*/ChallengeResponseAuthentication no/' /etc/ssh/sshd_config
+    systemctl restart sshd
+
+  # Install fail2ban for extra protection
+  - apt-get install -y fail2ban
+  - systemctl enable fail2ban
+  - systemctl start fail2ban
+
+  # Log completion
+  - echo "Bastion setup complete" > /var/log/bastion-setup.log

@@ -1,0 +1,42 @@
+# Required
+project_id = "your-gcp-project-id"
+
+# Optional - defaults shown
+region     = "asia-southeast1"
+zone       = "asia-southeast1-a"
+name_prefix = "pam-bastion"
+
+# Cloud SQL
+db_version     = "POSTGRES_15"
+db_tier        = "db-f1-micro"
+db_name        = "appdb"
+db_port        = 5432
+
+# Bastion users (IAM format: user:email@domain.com or group:group@domain.com)
+bastion_users = [
+  "user:dba1@yourcompany.com",
+  "user:dba2@yourcompany.com",
+]
+
+# PAM eligible users
+pam_eligible_users = [
+  "user:dba1@yourcompany.com",
+  "group:db-admins@yourcompany.com",
+]
+
+# PAM approvers (manual approval required)
+pam_approver_emails = [
+  "manager@yourcompany.com",
+]
+
+# PAM notification recipients
+pam_admin_emails = [
+  "security@yourcompany.com",
+]
+
+# Max duration for approved access (e.g., 2 hours)
+pam_max_request_duration = "7200s"
+
+# Monitoring (optional)
+enable_monitoring = false
+monitoring_notification_channels = []
