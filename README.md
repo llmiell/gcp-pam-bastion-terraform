@@ -135,6 +135,25 @@ Quick start:
 
 This uses **IAP TCP forwarding** to reach the private Cloud SQL instance — no VPN, no public IP, no exposed firewall rules.
 
+#### Why No VPN?
+
+IAP TCP forwarding creates an encrypted tunnel over HTTPS directly from your laptop to the bastion. Google handles the tunnel — your traffic never touches the public internet unencrypted, and the bastion has no public IP at all.
+
+| Approach | VPN | IAP Tunnel |
+|----------|-----|------------|
+| Client software | VPN client required | Only `gcloud` CLI |
+| Network route | Into VPC subnet | Direct HTTPS tunnel |
+| Bastion public IP | Sometimes needed | **Never needed** |
+| Encryption | IPsec/SSL VPN | TLS 1.3 over HTTPS |
+| Audit & control | Limited | Full IAM + PAM |
+
+```
+Your Laptop → gcloud start-iap-tunnel → Google IAP (TLS/443) → Bastion (private IP only)
+   → Cloud SQL Proxy (localhost) → Cloud SQL (private IP)
+```
+
+The bastion lives entirely on the private network. IAP acts as the secure entrypoint.
+
 ## Variables
 
 | Name | Description | Default |

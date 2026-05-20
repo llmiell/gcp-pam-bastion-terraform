@@ -15,10 +15,28 @@ This architecture bypasses both by using:
 2. **IAP TCP Tunneling** — encrypted tunnel over HTTPS, no VPN needed
 3. **Cloud SQL Proxy on Bastion** — secure local proxy inside the VPC
 
+> **No VPN is required.** IAP TCP forwarding creates a TLS tunnel directly from your laptop to the bastion over HTTPS (port 443). The bastion has **no public IP** and lives entirely on the private network. IAP is Google's built-in zero-trust access layer — it replaces the VPN for admin access.
+
 Your connection path:
 
 ```
-DBeaver → localhost:5433 → IAP Tunnel → Bastion:5432 → Cloud SQL Proxy → Cloud SQL (Private IP)
+Your Laptop
+    |
+    |  gcloud start-iap-tunnel (TLS/HTTPS)
+    v
+Google IAP (35.235.240.0/20)
+    |
+    |  forwarded TCP
+    v
+GCE Bastion (private IP only)
+    |
+    |  localhost:5432
+    v
+Cloud SQL Auth Proxy
+    |
+    |  private VPC
+    v
+Cloud SQL (Private IP)
 ```
 
 ---
